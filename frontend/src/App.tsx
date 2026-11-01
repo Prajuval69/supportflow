@@ -9,10 +9,19 @@ import { Dashboard } from './pages/Dashboard'
 import { Tickets } from './pages/Tickets'
 import { NewTicket } from './pages/NewTicket'
 import { TicketDetail } from './pages/TicketDetail'
+import { Notifications } from './pages/Notifications'
+import { AdminGate, Team, Categories, Sla } from './pages/Admin'
+import { useApi } from './hooks/useApi'
+import type { Notice } from './types'
 import type { Identity, Membership } from './types'
 function Workspace({ identity, membership, onSwitch, logout }: { identity: Identity; membership: Membership; onSwitch: (id: string) => void; logout: () => void }) {
-  const refreshNotifications = useCallback(() => {}, [])
-  return <WorkspaceContext.Provider value={{ identity, membership, refreshNotifications }}><AppShell identity={identity} membership={membership} onSwitch={onSwitch} logout={logout} unread={0}><Routes><Route index element={<Dashboard />} /><Route path="tickets" element={<Tickets />} /><Route path="tickets/new" element={<NewTicket />} /><Route path="tickets/:id" element={<TicketDetail />} /><Route path="*" element={<Empty title="Page not found"><Link to="/app">Return to overview</Link></Empty>} /></Routes></AppShell></WorkspaceContext.Provider>
+  const notifications = useApi<Notice[]>('/notifications?per_page=1', membership.organization.id)
+  const refreshNotifications = useCallback(() => notifications.reload(), [notifications.reload])
+  useEffect(() => {
+    const timer = window.setInterval(refreshNotifications, 30000)
+    return () => window.clearInterval(timer)
+  }, [refreshNotifications])
+  return <WorkspaceContext.Provider value={{ identity, membership, refreshNotifications }}><AppShell identity={identity} membership={membership} onSwitch={onSwitch} logout={logout} unread={notifications.result?.unread_count || 0}><Routes><Route index element={<Dashboard />} /><Route path="tickets" element={<Tickets />} /><Route path="tickets/new" element={<NewTicket />} /><Route path="tickets/:id" element={<TicketDetail />} /><Route path="notifications" element={<Notifications />} /><Route path="admin/team" element={<AdminGate><Team /></AdminGate>} /><Route path="admin/categories" element={<AdminGate><Categories /></AdminGate>} /><Route path="admin/sla" element={<AdminGate><Sla /></AdminGate>} /><Route path="*" element={<Empty title="Page not found"><Link to="/app">Return to overview</Link></Empty>} /></Routes></AppShell></WorkspaceContext.Provider>
 }
 export function Application() {
   const [identity, setIdentity] = useState<Identity | null>(null)

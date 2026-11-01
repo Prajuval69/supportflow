@@ -1,0 +1,12 @@
+{
+  "checked_at": "2026-11-01T10:21:35Z",
+  "status": "PASS",
+  "adapter": "ActiveJob::QueueAdapters::SidekiqAdapter",
+  "ticket_id": "3994bbb6-192e-4dea-991f-750d4d152d81",
+  "ticket_number": "ACME-0023",
+  "breach_events": 2,
+  "notifications": 4,
+  "duplicate_jobs_enqueued": 4,
+  "live_sidekiq_processes": 1,
+  "scheduled_scan": true
+}
