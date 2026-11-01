@@ -1,0 +1,14 @@
+.local/
+.env
+**/.env
+!**/.env.example
+**/node_modules/
+**/dist/
+**/coverage/
+**/log/*
+**/tmp/*
+**/storage/*
+**/config/master.key
+**/config/credentials*.yml.enc
+frontend/test-results/
+frontend/playwright-report/
