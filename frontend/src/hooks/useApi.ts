@@ -8,16 +8,25 @@ export function useApi<T>(path: string, org: string, enabled = true) {
   const [error, setError] = useState<Error>()
   const [loading, setLoading] = useState(true)
   const [revision, setRevision] = useState(0)
-  const reload = useCallback(() => setRevision(value => value + 1), [])
+  const reload = useCallback(() => setRevision((value) => value + 1), [])
   useEffect(() => {
-    if (!enabled) { setLoading(false); return }
+    if (!enabled) {
+      setLoading(false)
+      return
+    }
     const controller = new AbortController()
-    setLoading(true); setError(undefined)
-    api<T>(path, { org, signal: controller.signal }).then(data => {
-      if (!controller.signal.aborted) setStored({ key: `${org}:${path}`, result: data })
-    }).catch((reason: Error) => {
-      if (!controller.signal.aborted) setError(reason)
-    }).finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    setLoading(true)
+    setError(undefined)
+    api<T>(path, { org, signal: controller.signal })
+      .then((data) => {
+        if (!controller.signal.aborted) setStored({ key: `${org}:${path}`, result: data })
+      })
+      .catch((reason: Error) => {
+        if (!controller.signal.aborted) setError(reason)
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false)
+      })
     return () => controller.abort()
   }, [path, org, revision, enabled])
   return { result, error, loading, reload }

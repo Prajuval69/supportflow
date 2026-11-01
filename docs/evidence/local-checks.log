@@ -1,0 +1,85 @@
+
+SLA and assignment processing
+  scans overdue candidates and creates one event and notification per kind and recipient on retries
+  rechecks resolved, answered, future deadlines and wrong-tenant arguments
+  deduplicates assignments and skips stale event, recipient and tenant
+
+Concurrent PostgreSQL ticket numbering
+  serializes concurrent creators without duplicate numbers
+
+User
+  normalizes email, hashes passwords and rejects duplicates
+  enforces unique organization membership
+
+Administration, dashboard and notifications
+  adds existing and new accounts without overwriting existing credentials and audits changes
+  protects last admin and rejects non-admin management and cross-tenant member IDs
+U:/projects/supportflow/.local/rubyinstaller-3.3.10-1-x64/lib/ruby/gems/3.3.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+  manages categories and validated future-only SLA policies
+  scopes dashboard aggregates by tenant and customer ownership and accepts date filters
+  limits notifications to the recipient, tenant and currently visible ticket
+
+Identity and tenant context
+  serves health and rejects missing sessions
+  rejects missing and invalid CSRF, including login
+  logs in, rotates session token and logs out with an HTTP-only cookie
+  uses a generic credential error
+  rejects forged tenant and deactivated membership on the next request
+
+Security regression matrix
+  rejects missing CSRF on every mutation route, without database writes
+  rejects a valid token sent from an untrusted Origin
+  switches a dual member between different roles without widening customer scope
+  keeps historical tickets workable after their creator is deactivated
+  preloads ticket references with a bounded number of SQL reads
+
+Tenant-scoped tickets
+U:/projects/supportflow/.local/rubyinstaller-3.3.10-1-x64/lib/ruby/gems/3.3.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+U:/projects/supportflow/.local/rubyinstaller-3.3.10-1-x64/lib/ruby/gems/3.3.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+  creates with inferred tenant and creator, validates fields and snapshots SLA
+  restricts same-tenant customer ownership on read, update, comment and events
+  denies customer mutations, internal notes and missing CSRF
+  hides internal content and events while setting only first public staff response
+  assigns staff, enqueues notification, records transitions and rejects illegal ones
+U:/projects/supportflow/.local/rubyinstaller-3.3.10-1-x64/lib/ruby/gems/3.3.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+U:/projects/supportflow/.local/rubyinstaller-3.3.10-1-x64/lib/ruby/gems/3.3.0/gems/rspec-rails-7.1.1/lib/rspec/rails/matchers/have_http_status.rb:219: warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack. Please use :unprocessable_content instead.
+  rejects wrong-tenant and customer assignees and categories
+  denies other-organization access across list, search, read and all nested operations
+  paginates, filters, sorts business priority and rejects unsafe ordering
+
+Finished in 2.3 seconds (files took 2.87 seconds to load)
+29 examples, 0 failures
+
+Hold on, I am eager loading the application.
+All is good!
+
+> supportflow-web@1.0.0 typecheck
+> tsc -b
+
+
+> supportflow-web@1.0.0 build
+> tsc -b && vite build
+
+vite v6.4.5 building for production...
+transforming...
+✓ 1604 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.56 kB │ gzip:  0.35 kB
+dist/assets/index-C2FDJjFB.css   31.00 kB │ gzip:  7.58 kB
+dist/assets/index-BFMtBWzO.js   314.13 kB │ gzip: 96.84 kB
+✓ built in 2.87s
+
+> supportflow-web@1.0.0 test
+> vitest run
+
+
+ RUN  v4.1.12 U:/projects/supportflow/frontend
+
+
+ Test Files  3 passed (3)
+      Tests  9 passed (9)
+   Start at  15:59:49
+   Duration  3.63s (transform 436ms, setup 1.04s, import 797ms, tests 1.96s, environment 3.04s)
+
+Local checks passed. Start Rails, Vite and Sidekiq before running npm.cmd run e2e.

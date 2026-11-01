@@ -1,0 +1,21 @@
+
+> supportflow-web@1.0.0 e2e
+> playwright test
+
+
+Running 8 tests using 1 worker
+
+(node:26104) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:26104) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 e2e\administration.spec.ts:11:1 › known foreign ticket returns a safe 404 and customer cannot enter admin screens (2.7s)
+  ok 2 e2e\administration.spec.ts:41:1 › dual-member switch remounts the workspace with different permissions (981ms)
+  ok 3 e2e\administration.spec.ts:52:1 › admin changes an SLA target and a new ticket snapshots it; restores original policy (1.7s)
+  ok 4 e2e\administration.spec.ts:105:1 › admin creates and deactivates a category and adds a local member with confirmed access changes (1.5s)
+  ok 5 e2e\notifications.spec.ts:2:1 › real SLA notifications can be read and unread count updates (2.2s)
+  ok 6 e2e\screenshots.spec.ts:26:3 › desktop: real dashboard, inbox, SLA and staff/customer detail evidence (3.9s)
+  ok 7 e2e\screenshots.spec.ts:26:3 › mobile: real dashboard, inbox, SLA and staff/customer detail evidence (4.1s)
+  ok 8 e2e\ticket-flow.spec.ts:11:1 › customer and agent complete the real ticket workflow with internal note privacy (3.7s)
+
+  8 passed (21.9s)

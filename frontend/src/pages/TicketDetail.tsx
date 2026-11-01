@@ -6,7 +6,13 @@ import { useWorkspace } from '../context'
 import { useApi } from '../hooks/useApi'
 import { Badge, date, Empty, ErrorNotice, Field, label, Loading } from '../components/ui'
 import type { Category, Comment, Member, Status, Ticket, TicketEvent } from '../types'
-const transitions: Record<Status, Status[]> = { open: ['in_progress', 'resolved'], in_progress: ['waiting_on_customer', 'resolved'], waiting_on_customer: ['in_progress', 'resolved'], resolved: ['in_progress', 'closed'], closed: [] }
+const transitions: Record<Status, Status[]> = {
+  open: ['in_progress', 'resolved'],
+  in_progress: ['waiting_on_customer', 'resolved'],
+  waiting_on_customer: ['in_progress', 'resolved'],
+  resolved: ['in_progress', 'closed'],
+  closed: [],
+}
 export function TicketDetail() {
   const { id } = useParams()
   const { org, staff, refreshNotifications } = useWorkspace()
@@ -21,16 +27,271 @@ export function TicketDetail() {
   const [visibility, setVisibility] = useState('public')
   const data = ticket.result?.data
   async function update(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy(true); setError(undefined)
-    try { await api(`/tickets/${id}`, { org, method: 'PATCH', body: { ticket: Object.fromEntries(new FormData(event.currentTarget)) } }); ticket.reload(); events.reload(); refreshNotifications() }
-    catch (reason) { setError(reason as Error) } finally { setBusy(false) }
+    event.preventDefault()
+    setBusy(true)
+    setError(undefined)
+    try {
+      await api(`/tickets/${id}`, {
+        org,
+        method: 'PATCH',
+        body: { ticket: Object.fromEntries(new FormData(event.currentTarget)) },
+      })
+      ticket.reload()
+      events.reload()
+      refreshNotifications()
+    } catch (reason) {
+      setError(reason as Error)
+    } finally {
+      setBusy(false)
+    }
   }
   async function reply(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); const form = event.currentTarget; setBusy(true); setError(undefined)
-    try { await api(`/tickets/${id}/comments`, { org, method: 'POST', body: { comment: { body: new FormData(form).get('body'), visibility } } }); form.reset(); comments.reload(); events.reload(); ticket.reload() }
-    catch (reason) { setError(reason as Error) } finally { setBusy(false) }
+    event.preventDefault()
+    const form = event.currentTarget
+    setBusy(true)
+    setError(undefined)
+    try {
+      await api(`/tickets/${id}/comments`, {
+        org,
+        method: 'POST',
+        body: { comment: { body: new FormData(form).get('body'), visibility } },
+      })
+      form.reset()
+      comments.reload()
+      events.reload()
+      ticket.reload()
+    } catch (reason) {
+      setError(reason as Error)
+    } finally {
+      setBusy(false)
+    }
   }
   if (ticket.loading && !data) return <Loading />
-  if (!data) return <><ErrorNotice error={ticket.error} /><Empty title="Ticket unavailable">This ticket could not be found in your workspace. <Link to="/app/tickets">Return to inbox</Link></Empty></>
-  return <><Link className="back-link" to="/app/tickets"><ArrowLeft size={16} /> Back to tickets</Link>{location.state?.created && <div className="success-notice" role="status">Ticket created. Your support team can now review it.</div>}<div className="detail-heading"><p className="eyebrow">{data.ticket_number} <span> / {data.category?.name || 'General'}</span></p><h1>{data.title}</h1><div><Badge value={data.status} /><Badge value={data.priority} /><span className="muted">Opened by {data.created_by.name} · {date(data.created_at)}</span></div></div><ErrorNotice error={error} /><div className="detail-grid"><div><section className="panel description"><h2>The request</h2><p className="user-text">{data.description}</p></section><section className="panel conversation"><div className="section-heading"><h2>Conversation</h2><span className="muted">{staff ? 'Public replies & team notes' : 'Your support conversation'}</span></div><ErrorNotice error={comments.error} />{comments.loading ? <Loading /> : <div className="comment-list">{comments.result?.data.length ? comments.result.data.map(comment => <article key={comment.id} className={`comment ${comment.visibility === 'internal' ? 'internal' : ''}`}><div className="comment-header"><span className="avatar small">{comment.author.name.charAt(0)}</span><strong>{comment.author.name}</strong>{comment.visibility === 'internal' && <span className="internal-label"><LockKeyhole size={12} /> Internal note</span>}<time>{date(comment.created_at)}</time></div><p className="user-text">{comment.body}</p></article>) : <p className="muted">No replies yet. Start the conversation below.</p>}</div>}{data.status !== 'closed' ? <form className="reply-form" onSubmit={reply}>{staff && <div className="reply-tabs" role="group" aria-label="Reply visibility"><button type="button" aria-pressed={visibility === 'public'} onClick={() => setVisibility('public')}>Public reply</button><button type="button" aria-pressed={visibility === 'internal'} onClick={() => setVisibility('internal')}><LockKeyhole size={14} /> Internal note</button></div>}<Field label={visibility === 'internal' ? 'Team note' : 'Your reply'}><textarea name="body" required maxLength={10000} rows={4} placeholder={visibility === 'internal' ? 'Only your support team can see this note.' : 'Write a reply…'} /></Field><div className="form-actions"><span className="muted">{visibility === 'internal' ? 'Visible to staff only' : 'Visible to everyone on this ticket'}</span><button className="button primary" disabled={busy}>{busy ? 'Sending…' : visibility === 'internal' ? 'Add note' : 'Send reply'}<Send size={15} /></button></div></form> : <p className="closed-message">This ticket is closed and read-only.</p>}</section></div><aside><section className="panel detail-sidebar"><h2>Ticket details</h2>{staff && data.status !== 'closed' ? <form onSubmit={update} key={data.updated_at}><Field label="Status"><select name="status" defaultValue={data.status}><option value={data.status}>{label(data.status)}</option>{transitions[data.status].map(status => <option key={status} value={status}>{label(status)}</option>)}</select></Field><Field label="Assignee"><select name="assignee_id" defaultValue={data.assignee?.id || ''}><option value="">Unassigned</option>{members.result?.data.filter(member => member.active && member.role !== 'customer').map(member => <option key={member.id} value={member.user.id}>{member.user.name}</option>)}</select></Field><Field label="Priority"><select name="priority" defaultValue={data.priority}>{['low', 'normal', 'high', 'urgent'].map(priority => <option key={priority} value={priority}>{label(priority)}</option>)}</select></Field><Field label="Category"><select name="category_id" defaultValue={data.category?.id || ''}><option value="">General</option>{categories.result?.data.filter(c => c.active || c.id === data.category?.id).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></Field><button className="button full" disabled={busy}>Save changes</button></form> : <dl><dt>Assignee</dt><dd>{data.assignee?.name || 'Unassigned'}</dd><dt>Category</dt><dd>{data.category?.name || 'General'}</dd></dl>}<div className="deadline-box"><h3><Clock3 size={16} /> Service commitments</h3><dl><dt>First response due</dt><dd>{date(data.first_response_due_at)}</dd><dt>Resolution due</dt><dd>{date(data.resolution_due_at)}</dd></dl><span className={`sla-text ${data.overdue ? 'overdue' : ''}`}>{data.overdue ? 'Attention needed: SLA overdue' : data.first_response_at ? 'First response delivered' : 'Tracking response time'}</span></div></section><section className="panel timeline"><h2>Activity</h2><ErrorNotice error={events.error} />{events.result?.data.map(event => <div className="timeline-event" key={event.id}><span className="timeline-dot" /><div><p>{label(event.event_type)}{event.metadata.to ? ` → ${label(event.metadata.to)}` : ''}</p><small>{event.actor?.name || 'SupportFlow'} · {date(event.created_at)}</small></div></div>)}</section></aside></div></>
+  if (!data)
+    return (
+      <>
+        <ErrorNotice error={ticket.error} />
+        <Empty title="Ticket unavailable">
+          This ticket could not be found in your workspace.{' '}
+          <Link to="/app/tickets">Return to inbox</Link>
+        </Empty>
+      </>
+    )
+  return (
+    <>
+      <Link className="back-link" to="/app/tickets">
+        <ArrowLeft size={16} /> Back to tickets
+      </Link>
+      {location.state?.created && (
+        <div className="success-notice" role="status">
+          Ticket created. Your support team can now review it.
+        </div>
+      )}
+      <div className="detail-heading">
+        <p className="eyebrow">
+          {data.ticket_number} <span> / {data.category?.name || 'General'}</span>
+        </p>
+        <h1>{data.title}</h1>
+        <div>
+          <Badge value={data.status} />
+          <Badge value={data.priority} />
+          <span className="muted">
+            Opened by {data.created_by.name} · {date(data.created_at)}
+          </span>
+        </div>
+      </div>
+      <ErrorNotice error={error} />
+      <div className="detail-grid">
+        <div>
+          <section className="panel description">
+            <h2>The request</h2>
+            <p className="user-text">{data.description}</p>
+          </section>
+          <section className="panel conversation">
+            <div className="section-heading">
+              <h2>Conversation</h2>
+              <span className="muted">
+                {staff ? 'Public replies & team notes' : 'Your support conversation'}
+              </span>
+            </div>
+            <ErrorNotice error={comments.error} />
+            {comments.loading ? (
+              <Loading />
+            ) : (
+              <div className="comment-list">
+                {comments.result?.data.length ? (
+                  comments.result.data.map((comment) => (
+                    <article
+                      key={comment.id}
+                      className={`comment ${comment.visibility === 'internal' ? 'internal' : ''}`}
+                    >
+                      <div className="comment-header">
+                        <span className="avatar small">{comment.author.name.charAt(0)}</span>
+                        <strong>{comment.author.name}</strong>
+                        {comment.visibility === 'internal' && (
+                          <span className="internal-label">
+                            <LockKeyhole size={12} /> Internal note
+                          </span>
+                        )}
+                        <time>{date(comment.created_at)}</time>
+                      </div>
+                      <p className="user-text">{comment.body}</p>
+                    </article>
+                  ))
+                ) : (
+                  <p className="muted">No replies yet. Start the conversation below.</p>
+                )}
+              </div>
+            )}
+            {data.status !== 'closed' ? (
+              <form className="reply-form" onSubmit={reply}>
+                {staff && (
+                  <div className="reply-tabs" role="group" aria-label="Reply visibility">
+                    <button
+                      type="button"
+                      aria-pressed={visibility === 'public'}
+                      onClick={() => setVisibility('public')}
+                    >
+                      Public reply
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={visibility === 'internal'}
+                      onClick={() => setVisibility('internal')}
+                    >
+                      <LockKeyhole size={14} /> Internal note
+                    </button>
+                  </div>
+                )}
+                <Field label={visibility === 'internal' ? 'Team note' : 'Your reply'}>
+                  <textarea
+                    name="body"
+                    required
+                    maxLength={10000}
+                    rows={4}
+                    placeholder={
+                      visibility === 'internal'
+                        ? 'Only your support team can see this note.'
+                        : 'Write a reply…'
+                    }
+                  />
+                </Field>
+                <div className="form-actions">
+                  <span className="muted">
+                    {visibility === 'internal'
+                      ? 'Visible to staff only'
+                      : 'Visible to everyone on this ticket'}
+                  </span>
+                  <button className="button primary" disabled={busy}>
+                    {busy ? 'Sending…' : visibility === 'internal' ? 'Add note' : 'Send reply'}
+                    <Send size={15} />
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <p className="closed-message">This ticket is closed and read-only.</p>
+            )}
+          </section>
+        </div>
+        <aside>
+          <section className="panel detail-sidebar">
+            <h2>Ticket details</h2>
+            {staff && data.status !== 'closed' ? (
+              <form onSubmit={update} key={data.updated_at}>
+                <Field label="Status">
+                  <select name="status" defaultValue={data.status}>
+                    <option value={data.status}>{label(data.status)}</option>
+                    {transitions[data.status].map((status) => (
+                      <option key={status} value={status}>
+                        {label(status)}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Assignee">
+                  <select name="assignee_id" defaultValue={data.assignee?.id || ''}>
+                    <option value="">Unassigned</option>
+                    {members.result?.data
+                      .filter((member) => member.active && member.role !== 'customer')
+                      .map((member) => (
+                        <option key={member.id} value={member.user.id}>
+                          {member.user.name}
+                        </option>
+                      ))}
+                  </select>
+                </Field>
+                <Field label="Priority">
+                  <select name="priority" defaultValue={data.priority}>
+                    {['low', 'normal', 'high', 'urgent'].map((priority) => (
+                      <option key={priority} value={priority}>
+                        {label(priority)}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Category">
+                  <select name="category_id" defaultValue={data.category?.id || ''}>
+                    <option value="">General</option>
+                    {categories.result?.data
+                      .filter((c) => c.active || c.id === data.category?.id)
+                      .map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                  </select>
+                </Field>
+                <button className="button full" disabled={busy}>
+                  Save changes
+                </button>
+              </form>
+            ) : (
+              <dl>
+                <dt>Assignee</dt>
+                <dd>{data.assignee?.name || 'Unassigned'}</dd>
+                <dt>Category</dt>
+                <dd>{data.category?.name || 'General'}</dd>
+              </dl>
+            )}
+            <div className="deadline-box">
+              <h3>
+                <Clock3 size={16} /> Service commitments
+              </h3>
+              <dl>
+                <dt>First response due</dt>
+                <dd>{date(data.first_response_due_at)}</dd>
+                <dt>Resolution due</dt>
+                <dd>{date(data.resolution_due_at)}</dd>
+              </dl>
+              <span className={`sla-text ${data.overdue ? 'overdue' : ''}`}>
+                {data.overdue
+                  ? 'Attention needed: SLA overdue'
+                  : data.first_response_at
+                    ? 'First response delivered'
+                    : 'Tracking response time'}
+              </span>
+            </div>
+          </section>
+          <section className="panel timeline">
+            <h2>Activity</h2>
+            <ErrorNotice error={events.error} />
+            {events.result?.data.map((event) => (
+              <div className="timeline-event" key={event.id}>
+                <span className="timeline-dot" />
+                <div>
+                  <p>
+                    {label(event.event_type)}
+                    {event.metadata.to ? ` → ${label(event.metadata.to)}` : ''}
+                  </p>
+                  <small>
+                    {event.actor?.name || 'SupportFlow'} · {date(event.created_at)}
+                  </small>
+                </div>
+              </div>
+            ))}
+          </section>
+        </aside>
+      </div>
+    </>
+  )
 }

@@ -31,8 +31,10 @@ class Ticket < ApplicationRecord
 
   def tenant_associations
     members = Membership.active.where(organization_id: organization_id)
-    errors.add(:created_by, 'must be an active organization member') unless members.exists?(user_id: created_by_id)
-    if assignee_id && !members.staff.exists?(user_id: assignee_id)
+    if (new_record? || will_save_change_to_created_by_id? || will_save_change_to_organization_id?) && !members.exists?(user_id: created_by_id)
+      errors.add(:created_by, 'must be an active organization member')
+    end
+    if assignee_id && (new_record? || will_save_change_to_assignee_id? || will_save_change_to_organization_id?) && !members.staff.exists?(user_id: assignee_id)
       errors.add(:assignee, 'must be active staff in this organization')
     end
     errors.add(:category, 'must belong to this organization') if category && category.organization_id != organization_id

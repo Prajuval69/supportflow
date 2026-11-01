@@ -2,16 +2,23 @@ import { test, expect, type Page } from '@playwright/test'
 async function login(page: Page, email: string) {
   await page.goto('/login')
   await page.getByLabel('Email address').fill(email)
-  await page.getByLabel('Password', { exact: true }).fill(process.env.DEMO_PASSWORD || 'DemoPass!12345')
+  await page
+    .getByLabel('Password', { exact: true })
+    .fill(process.env.DEMO_PASSWORD || 'DemoPass!12345')
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'A clear view of your support.' })).toBeVisible()
 }
-test('customer and agent complete the real ticket workflow with internal note privacy', async ({ page, browser }) => {
+test('customer and agent complete the real ticket workflow with internal note privacy', async ({
+  page,
+  browser,
+}) => {
   await login(page, 'customer1@acme.example')
   await page.getByRole('link', { name: 'New ticket' }).click()
   const title = `Browser account request ${Date.now()}`
   await page.getByLabel('Title', { exact: true }).fill(title)
-  await page.getByLabel('Description').fill('Created by the real browser against Rails and PostgreSQL.')
+  await page
+    .getByLabel('Description')
+    .fill('Created by the real browser against Rails and PostgreSQL.')
   await page.getByRole('button', { name: 'Create ticket' }).click()
   await expect(page.getByRole('heading', { name: title })).toBeVisible()
   const ticketUrl = page.url()
@@ -29,16 +36,22 @@ test('customer and agent complete the real ticket workflow with internal note pr
   await agent.getByRole('button', { name: 'Internal note', exact: true }).click()
   await agent.getByLabel('Team note').fill('Staff-only confidential diagnosis from browser.')
   await agent.getByRole('button', { name: 'Add note' }).click()
-  await expect(agent.getByText('Staff-only confidential diagnosis from browser.', { exact: true })).toBeVisible()
+  await expect(
+    agent.getByText('Staff-only confidential diagnosis from browser.', { exact: true }),
+  ).toBeVisible()
   await agent.getByRole('button', { name: 'Public reply', exact: true }).click()
   await agent.getByLabel('Your reply').fill('Public answer: your account is ready.')
   await agent.getByRole('button', { name: 'Send reply' }).click()
-  await expect(agent.getByText('Public answer: your account is ready.', { exact: true })).toBeVisible()
+  await expect(
+    agent.getByText('Public answer: your account is ready.', { exact: true }),
+  ).toBeVisible()
   await agent.getByLabel('Status', { exact: true }).selectOption('resolved')
   await agent.getByRole('button', { name: 'Save changes' }).click()
   await expect(agent.getByLabel('Status', { exact: true })).toHaveValue('resolved')
   await page.reload()
-  await expect(page.getByText('Public answer: your account is ready.', { exact: true })).toBeVisible()
+  await expect(
+    page.getByText('Public answer: your account is ready.', { exact: true }),
+  ).toBeVisible()
   await expect(page.getByText('Staff-only confidential diagnosis from browser.')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Internal note', exact: true })).toHaveCount(0)
   await agentContext.close()

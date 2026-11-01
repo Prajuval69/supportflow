@@ -5,6 +5,9 @@ module Tickets
       ticket.with_lock do
         raise Api::V1::BaseController::Conflict, 'Closed tickets are read-only' if ticket.status == 'closed'
         attrs = attributes.symbolize_keys
+        [:assignee_id, :category_id].each do |key|
+          attrs[key] = attrs[key].presence if attrs.key?(key)
+        end
         if attrs[:status].present? && attrs[:status] != ticket.status
           next_status = attrs[:status]
           unless Ticket::TRANSITIONS.fetch(ticket.status).include?(next_status)
