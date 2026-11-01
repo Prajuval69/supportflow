@@ -1,0 +1,20 @@
+PONG
+Local PostgreSQL: 127.0.0.1:55432; Redis: 127.0.0.1:56379. Existing system services were not changed.
+Bundle complete! 9 Gemfile dependencies, 85 gems now installed.
+Use `bundle info [gemname]` to see where a bundled gem is installed.
+1 installed gem you directly depend on is looking for funding.
+  Run `bundle fund` for details
+Local demo ready: 2 organizations, 38 tickets. Credentials documented in README.
+npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+
+added 230 packages, and audited 231 packages in 6s
+
+44 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+npm warn install-scripts 1 package has install scripts not yet covered by allowScripts:
+npm warn install-scripts   esbuild@0.25.12 (postinstall: node install.js)
+npm warn install-scripts
+npm warn install-scripts Run `npm install-scripts ls` to review, or `npm install-scripts approve <pkg>` to allow.
+Setup complete. Use the README to start Rails, Sidekiq and Vite in separate terminals.

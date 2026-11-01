@@ -24,5 +24,7 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'Frontend build failed' }
   & npm.cmd test
   if ($LASTEXITCODE -ne 0) { throw 'Frontend tests failed' }
+  & npm.cmd run format:check
+  if ($LASTEXITCODE -ne 0) { throw 'Frontend formatting check failed' }
 } finally { Pop-Location }
 Write-Output 'Local checks passed. Start Rails, Vite and Sidekiq before running npm.cmd run e2e.'

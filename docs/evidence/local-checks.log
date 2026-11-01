@@ -47,7 +47,7 @@ U:/projects/supportflow/.local/rubyinstaller-3.3.10-1-x64/lib/ruby/gems/3.3.0/ge
   denies other-organization access across list, search, read and all nested operations
   paginates, filters, sorts business priority and rejects unsafe ordering
 
-Finished in 2.3 seconds (files took 2.87 seconds to load)
+Finished in 2.38 seconds (files took 2.45 seconds to load)
 29 examples, 0 failures
 
 Hold on, I am eager loading the application.
@@ -68,7 +68,7 @@ computing gzip size...
 dist/index.html                   0.56 kB │ gzip:  0.35 kB
 dist/assets/index-C2FDJjFB.css   31.00 kB │ gzip:  7.58 kB
 dist/assets/index-BFMtBWzO.js   314.13 kB │ gzip: 96.84 kB
-✓ built in 2.87s
+✓ built in 2.42s
 
 > supportflow-web@1.0.0 test
 > vitest run
@@ -79,7 +79,13 @@ dist/assets/index-BFMtBWzO.js   314.13 kB │ gzip: 96.84 kB
 
  Test Files  3 passed (3)
       Tests  9 passed (9)
-   Start at  15:59:49
-   Duration  3.63s (transform 436ms, setup 1.04s, import 797ms, tests 1.96s, environment 3.04s)
+   Start at  16:07:05
+   Duration  3.39s (transform 405ms, setup 874ms, import 703ms, tests 2.03s, environment 2.45s)
 
+
+> supportflow-web@1.0.0 format:check
+> prettier --check src e2e *.ts *.js *.json
+
+Checking formatting...
+All matched files use Prettier code style!
 Local checks passed. Start Rails, Vite and Sidekiq before running npm.cmd run e2e.
