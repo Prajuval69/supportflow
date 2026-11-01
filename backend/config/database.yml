@@ -1,0 +1,17 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch('RAILS_MAX_THREADS', 10) %>
+  host: <%= ENV.fetch('PGHOST', '127.0.0.1') %>
+  port: <%= ENV.fetch('PGPORT', 5432) %>
+  username: <%= ENV.fetch('PGUSER', 'supportflow') %>
+  password: <%= ENV['PGPASSWORD'] %>
+development:
+  <<: *default
+  database: supportflow_development
+test:
+  <<: *default
+  database: supportflow_test
+production:
+  <<: *default
+  url: <%= ENV['DATABASE_URL'] %>
